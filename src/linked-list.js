@@ -19,13 +19,16 @@ class LinkedList {
 
         this._tail = newNode;
         this.length++;
+        return this;
     }
 
     head() {
+        if(this._head === null) return null;
         return this._head.data;
     }
 
     tail() {
+        if(this._tail === null) return null;
         return this._tail.data;
     }
 
@@ -48,12 +51,16 @@ class LinkedList {
     insertAt(index, data) {
         const newNode = new Node(data);
 
-        if (this._head === null) {
+        if (this._head === null && index !== 0) {
             throw new RangeError(`Index ${index} does not exist in the list.`);
+        }
+        if (this._head === null && index === 0){
+            this.append(data);
+            return this;
         }
         if (index === 0) {
             newNode.next = this._head;
-            this._head.previous = newNode;
+            this._head.prev = newNode;
             this._head = newNode;
         } else {
             let current = this._head;
@@ -65,11 +72,13 @@ class LinkedList {
             if (i < index) {
                 throw new RangeError(`Index ${index} does not exist in the list.`);
             }
-            current.previous.next = newNode;
-            newNode.previous = current.previous;
+            current.prev.next = newNode;
+            newNode.prev = current.prev;
             newNode.next = current;
-            current.previous = newNode;
+            current.prev = newNode;
         }
+
+        return this;
     }
 
     isEmpty() {
@@ -81,6 +90,8 @@ class LinkedList {
         this._head = null;
         this._tail = null;
         return this;
+
+
     }
 
     deleteAt(index) {
@@ -92,21 +103,18 @@ class LinkedList {
         //  removing the first node
         if (index === 0) {
 
-            // store the data from the current head
-            const data = this._head.data;
 
             // just replace the head with the next node in the list
             this._head = this._head.next;
 
-            // there was only one node, so also reset `this[tail]`
+            // there was only one node, so also reset `this._tail`
             if (this._head === null) {
                 this._tail = null;
             } else {
-                this._head.previous = null;
+                this._head.prev = null;
             }
 
-            // return the data at the previous head of the list
-            return data;
+            return this;
         }
 
         // pointer use to traverse the list
@@ -125,17 +133,16 @@ class LinkedList {
         // if node was found, remove it
         if (current !== null) {
 
-            current.previous.next = current.next;
+            current.prev.next = current.next;
 
-            // this is the last node so reset `this[tail]`.
+            // this is the last node so reset `this._tail`.
             if (this._tail === current) {
-                this._tail = current.previous;
+                this._tail = current.prev;
             } else {
-                current.next.previous = current.previous;
+                current.next.prev = current.prev;
             }
 
-            // return the value that was just removed from the list
-            return current.data;
+            return this;
         }
 
         // if node wasn't found, throw an error
@@ -144,11 +151,10 @@ class LinkedList {
     }
 
     reverse() {
-        let currentNode = this._head(),
+        let currentNode = this._head,
             length = this.length,
-            count = 1,
+            i = 1,
             message1 = {failure: 'Failure: non-existent node in this list.'},
-            message2 = {failure: 'Failure: this list contains ONE element'},
             temp = null;
 
         // 1-ый случай: список пуст или в нем одна позиция
@@ -157,32 +163,29 @@ class LinkedList {
         }
 
         if (length === 1){
-            // throw new Error(message2.failure);
+
             return this;
         }
 
         // 2-ой случай: реверс
-        while (count < this.length) {
-            temp = currentNode.previous;
-            currentNode.previous = currentNode.next;
+        while (i < this.length) {
+            temp = currentNode.prev;
+            currentNode.prev = currentNode.next;
+            let nextItem = currentNode.next;
             currentNode.next = temp;
 
-            currentNode = currentNode.next;
-            count++;
+            currentNode = nextItem;
+            i++;
         }
 
-        temp = this._head();
-        this._head = this._tail();
+        temp = this._head;
+        this._head = this._tail;
+        this._head.next = this._head.prev;
+        this._head.prev = null;
         this._tail = temp;
+
         return this;
-        // start by looking at the tail
-        // let current = this._tail;
-        //
-        // // follow the previous links to the head
-        // while (current !== null) {
-        //     yield current.data;
-        //     current = current.previous;
-        // }
+
     }
 
     indexOf(data) {
@@ -204,10 +207,5 @@ class LinkedList {
     }
 }
 
-// list1 = new LinkedList();
-// let aaaa = list1.isEmpty();
-// list1.append(123);
-// list1.append(413);
-// console.log(list1.length);
-// console.log(aaaa);
+
 module.exports = LinkedList;
